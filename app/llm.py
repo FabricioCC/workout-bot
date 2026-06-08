@@ -1,7 +1,6 @@
 import os
 import json
 from google import genai
-from google.genai import types
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -19,8 +18,8 @@ JSON structure:
 }
 
 Intents:
-- register_workout: user is logging a workout
-  data: { "exercise": "name", "weight_kg": 0.0, "series": 0, "reps": 0 }
+- register_workout: user is logging one or more exercises
+  data: { "exercises": [ { "exercise": "name", "weight_kg": 0.0, "series": 0, "reps": 0 } ] }
 
 - query_report: user wants to see history or progress
   data: { "muscle_group": "chest|back|legs|shoulders|arms|null", "period": "week|month|null" }
@@ -32,6 +31,7 @@ Intents:
   data: {}
 
 Rules:
+- Always use a list in "exercises", even if there is only one exercise
 - Normalize exercise names to lowercase english (e.g. "bench press", "squat")
 - If weight is not mentioned, use null
 - Keep the reply short and friendly
@@ -40,7 +40,7 @@ Rules:
 
 def parse_message(message: str) -> dict:
     response = client.models.generate_content(
-        model="gemini-3.5-flash",
+        model="gemini-1.5-flash",
         contents=f"{SYSTEM_PROMPT}\n\nUser message: {message}",
     )
 
