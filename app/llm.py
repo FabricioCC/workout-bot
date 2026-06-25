@@ -40,7 +40,7 @@ Rules:
 
 def parse_message(message: str) -> dict:
     response = client.models.generate_content(
-        model="gemini-3.5-flash",
+        model="gemini-2.5-flash",
         contents=f"{SYSTEM_PROMPT}\n\nUser message: {message}",
     )
 
