@@ -29,3 +29,11 @@ async def webhook(From: str = Form(...), Body: str = Form(...)):
 
     # Twilio expects an empty 200 response
     return Response(content="", media_type="text/xml")
+
+@app.get("/debug")
+def debug():
+    return {
+        "supabase_url": os.getenv("SUPABASE_URL", "NOT FOUND"),
+        "gemini": "ok" if os.getenv("GEMINI_API_KEY") else "NOT FOUND",
+        "twilio": "ok" if os.getenv("TWILIO_ACCOUNT_SID") else "NOT FOUND",
+    }
