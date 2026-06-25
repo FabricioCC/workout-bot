@@ -1,5 +1,5 @@
 from app.llm import parse_message
-from app.database import save_set, get_report
+from app.database import save_set, get_report, save_goal, get_goals
 
 def handle_message(text: str) -> str:
     result = parse_message(text)
@@ -25,7 +25,14 @@ def handle_message(text: str) -> str:
         )
 
     elif intent == "set_goal":
-        return "🎯 Goals coming soon!"
+        return save_goal(
+            exercise=data["exercise"],
+            target_weight_kg=data["target_weight_kg"],
+            deadline=data.get("deadline"),
+        )
+
+    elif intent == "query_goals":
+        return get_goals()
 
     else:
         return result.get("reply", "I didn't understand that. Try: 'Did bench press 30kg, 4x10'")

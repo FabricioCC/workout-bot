@@ -93,3 +93,55 @@ def get_report(muscle_group: str = None, period: str = None) -> str:
         lines.append("")  # linha em branco entre treinos
 
     return "\n".join(lines)
+
+def save_goal(exercise: str, target_weight_kg: float, deadline: str = None) -> str:
+    supabase.table("goals").insert({
+        "exercise": exercise,
+        "target_weight_kg": target_weight_kg,
+        "deadline": deadline,
+    }).execute()
+
+    msg = f"🎯 Goal set: {exercise.title()} → {target_weight_kg}kg"
+    if deadline:
+        msg += f" by {deadline}"
+    return msg
+
+
+def get_goals() -> str:
+    goals = supabase.table("goals").select("*").eq("achieved", False).execute()
+
+    if not goals.data:
+        return "No goals set yet. Try: 'I want to bench press 100kg by December'"
+
+    lines = ["🎯 *Your goals:*\n"]
+    for goal in goals.data:
+        exercise = goal["exercise"]
+        target = goal["target_weight_kg"]
+
+        # Current weight for this exercise
+        current = (
+            supabase.table("sets")
+            .select("weight_kg")
+            .eq("exercise", exercise)
+            .order("created_at", desc=True)
+            .limit(1)
+            .execute()
+        )
+
+        if current.data and current.data[0]["weight_kg"]:
+            current_weight = float(current.data[0]["weight_kg"])
+            pct = round((current_weight / float(target)) * 100)
+            bar = "█" * (pct // 10) + "░" * (10 - pct // 10)
+            lines.append(f"*{exercise.title()}*")
+            lines.append(f"{bar} {pct}%")
+            lines.append(f"Now: {current_weight}kg → Target: {target}kg")
+            if goal.get("deadline"):
+                lines.append(f"Deadline: {goal['deadline']}")
+        else:
+            lines.append(f"*{exercise.title()}*: target {target}kg")
+            if goal.get("deadline"):
+                lines.append(f"Deadline: {goal['deadline']}")
+
+        lines.append("")
+
+    return "\n".join(lines)
